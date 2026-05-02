@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>레브릭스&amp;펜다소파 상담일지</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet"/>
@@ -1431,6 +1431,8 @@ function _render(){
   const thIqd=G("th-iqd");
   if(thIqd) thIqd.style.color=sortField==="inquiryDate"?'var(--ink)':'';
   const tbody=G("tbody"), empty=G("empty");
+  // 모바일 카드뷰는 빈 목록도 항상 갱신 (필터 전환 시 이전 카드 남는 버그 방지)
+  renderCards(list);
   if(!list.length){
     tbody.innerHTML=""; empty.style.display="block";
     G("empty-msg").textContent=
@@ -1441,7 +1443,6 @@ function _render(){
     return;
   }
   empty.style.display="none";
-  renderCards(list); // 모바일 카드뷰
   tbody.innerHTML=list.map(r=>{
     const imgs=(Array.isArray(r.images)?r.images:[]).filter(Boolean);
     imgStore[r.id]=imgs; // base64를 onclick 속성에 직접 넣지 않고 여기서 관리
