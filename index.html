@@ -402,7 +402,7 @@ tbody tr:hover .acts{opacity:1}
       <div class="field"><div class="lbl">성함<span class="req">*</span></div>
         <input id="f-name" type="text" placeholder="홍길동"/></div>
 
-      <div class="field"><div class="lbl">연락처<span class="req">*</span></div>
+      <div class="field"><div class="lbl">연락처 <span class="img-limit">(선택)</span></div>
         <input id="f-phone" type="text" placeholder="010-0000-0000" oninput="fmtPhone(this)" maxlength="13"/></div>
 
       <div class="field"><div class="lbl">문의일<span class="req">*</span></div>
@@ -579,7 +579,7 @@ tbody tr:hover .acts{opacity:1}
         <div class="field"><div class="lbl">브랜드</div><select id="e-brand"><option>레브릭스</option><option>펜다소파</option></select></div>
         <div class="field"><div class="lbl">문의 유형</div><select id="e-type" onchange="syncDelivery('e')"><option>구매문의</option><option>배송문의</option><option>AS문의</option><option>컴플레인</option></select></div>
         <div class="field"><div class="lbl">성함<span class="req">*</span></div><input id="e-name" type="text"/></div>
-        <div class="field"><div class="lbl">연락처<span class="req">*</span></div><input id="e-phone" type="text" oninput="fmtPhone(this)" maxlength="13"/></div>
+        <div class="field"><div class="lbl">연락처 <span class="img-limit">(선택)</span></div><input id="e-phone" type="text" oninput="fmtPhone(this)" maxlength="13"/></div>
         <div class="field"><div class="lbl">문의일<span class="req">*</span></div><input id="e-iqd" type="date"/></div>
         <div class="field"><div class="lbl">희망일</div><input id="e-wsh" type="date"/></div>
         <div class="field field-delivery" id="e-delivery-wrap">
@@ -1144,7 +1144,7 @@ async function compressAll(files, statEl, pbEl, pwEl) {
 ═══════════════════════════════════════════════════ */
 async function submitForm() {
   const name=G("f-name").value.trim(), ph=G("f-phone").value.trim(), iqd=G("f-iqd").value;
-  if (!name||!ph||!iqd) { toast("성함, 연락처, 문의일을 입력해 주세요.","e"); return; }
+  if (!name||!iqd) { toast("성함과 문의일을 입력해 주세요.","e"); return; }
   const btn=G("f-sub"); btn.disabled=true; btn.textContent="저장 중…";
   try {
     const imgs = await compressAll(fFiles, G("f-stat"), G("f-pb"), G("f-pw"));
@@ -1309,7 +1309,7 @@ function closeEdit(){ editId=null; G("ov-edit").classList.remove("open"); }
 
 async function saveEdit(){
   const name=G("e-name").value.trim(), ph=G("e-phone").value.trim(), iqd=G("e-iqd").value;
-  if(!name||!ph||!iqd){ toast("성함, 연락처, 문의일을 입력해 주세요.","e"); return; }
+  if(!name||!iqd){ toast("성함과 문의일을 입력해 주세요.","e"); return; }
   const btn=G("e-save"); btn.disabled=true; btn.textContent="저장 중…";
   try {
     const newImgs = await compressAll(eFiles, null, null, null);
