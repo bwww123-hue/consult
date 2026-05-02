@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>레브릭스&amp;펜다소파 상담일지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<!-- Firebase SDK 불필요 — REST API + SSE 방식 사용 -->
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a1a;--ink-2:#555;--ink-3:#999;
+  --border:#e4e2de;--bg:#f7f5f2;--surface:#fff;
+  --accent:#c8583a;--accent-l:#fdf1ee;
+  --green:#2d7a4f;--green-l:#edf7f1;
+  --urgent:#dc2626;--urgent-l:#fff1f1;
+  --emotion:#d97706;--emotion-l:#fffbeb;
+  --rebrix:#3b5bdb;--rebrix-l:#eef2ff;
+  --penda:#0f766e;--penda-l:#f0fdfa;
+  --r:12px;--sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.05);
+}
+html{font-size:15px}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.7}
+
+/* 헤더 */
+header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.hd{max-width:1320px;margin:0 auto;padding:0 24px;height:62px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Noto Serif KR',serif;font-size:1.1rem;font-weight:600;display:flex;align-items:center;gap:8px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.live{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-3)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#bbb;animation:pulse 2s infinite}
+.live-dot.connected{background:#4caf7d}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* 본문 */
+main{max-width:1320px;margin:0 auto;padding:28px 24px 80px;display:flex;flex-direction:column;gap:20px}
+
+/* 카드 */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.card-hd{padding:13px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.card-bar{width:3px;height:16px;border-radius:2px;background:var(--ink)}
+.card-title{font-size:.73rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+
+/* 폼 */
+.form-body{padding:20px 22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field-full{grid-column:1/-1}
+.lbl{font-size:.69rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.req{color:var(--accent);margin-left:2px}
+input,select,textarea{width:100%;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:.9rem;padding:0 11px;height:40px;outline:none;transition:border-color .15s,background .15s,box-shadow .15s;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--ink);background:var(--surface);box-shadow:0 0 0 3px rgba(26,26,26,.07)}
+textarea{height:auto;padding:9px 11px;resize:vertical;line-height:1.6}
+
+/* 체크박스 */
+.checks{display:flex;gap:14px;align-items:center;flex-wrap:wrap;min-height:40px}
+.ci{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem;font-weight:500;user-select:none}
+.cb{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.cb svg{display:none}.cb.on svg{display:block}
+.ci.urg .cb.on{background:var(--urgent);border-color:var(--urgent)}
+.ci.emo .cb.on{background:var(--emotion);border-color:var(--emotion)}
+.ci.urg{color:var(--urgent)}.ci.emo{color:var(--emotion)}
+
+/* 토글 */
+.tog{width:100%;height:40px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-family:inherit;font-size:.87rem;font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;color:var(--ink-2)}
+.tog.on{background:var(--green-l);border-color:#a8d8be;color:var(--green)}
+.tog-dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3);transition:background .2s}
+.tog.on .tog-dot{background:var(--green)}
+
+/* 업로드 */
+.up-area{border:2px dashed var(--border);border-radius:9px;background:var(--bg);transition:border-color .2s;min-height:70px;display:flex;flex-direction:column;gap:8px;padding:12px;cursor:pointer}
+.up-area:hover{border-color:var(--ink-3)}
+.up-ph{display:flex;align-items:center;gap:7px;color:var(--ink-3);font-size:.85rem;justify-content:center;padding:6px 0}
+.prev-strip{display:flex;flex-wrap:wrap;gap:7px}
+.prev-item{position:relative;width:70px;height:70px;border-radius:8px;overflow:hidden;border:1px solid var(--border);flex-shrink:0}
+.prev-item img{width:100%;height:100%;object-fit:cover}
+.prev-rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);border:none;cursor:pointer;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center}
+.prog-wrap{width:100%;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden}
+.prog-bar{height:100%;background:var(--ink);border-radius:2px;transition:width .2s;width:0%}
+.upload-stat{font-size:.78rem;color:var(--ink-3);text-align:center;padding:2px 0}
+.img-limit{font-size:.69rem;color:var(--ink-3);text-transform:none;letter-spacing:0;font-weight:400}
+
+/* 버튼 */
+.form-foot{padding:0 22px 20px;display:flex;justify-content:flex-end}
+.btn-p{display:inline-flex;align-items:center;gap:6px;padding:0 20px;height:40px;border-radius:8px;border:none;background:var(--ink);color:#fff;font-family:inherit;font-size:.87rem;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-p:hover{background:#333}.btn-p:active{transform:scale(.98)}.btn-p:disabled{background:#bbb;cursor:not-allowed}
+
+/* 필터 탭 */
+.filter-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.tabs{display:flex;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;box-shadow:var(--sh)}
+.tab{padding:6px 15px;border-radius:7px;border:none;background:transparent;font-family:inherit;font-size:.82rem;font-weight:500;color:var(--ink-3);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
+.tab.on{background:var(--ink);color:#fff}
+.tbadge{font-size:.68rem;padding:1px 6px;border-radius:20px;background:rgba(255,255,255,.2)}
+.tab:not(.on) .tbadge{background:var(--bg);color:var(--ink-3)}
+
+/* 테이블 */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem;table-layout:auto}
+thead tr{background:var(--bg);border-bottom:1px solid var(--border)}
+th{padding:11px 15px;text-align:left;font-size:.72rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+td{padding:16px 15px;border-bottom:1px solid #f0eeea;vertical-align:middle}
+tbody tr{transition:background .1s;cursor:pointer}
+tbody tr:hover{background:#f4f2ef}
+tbody tr:last-child td{border-bottom:none}
+tbody tr.row-u{border-left:3px solid var(--urgent);background:var(--urgent-l)}
+tbody tr.row-u:hover{background:#ffecec}
+tbody tr.row-e:not(.row-u){border-left:3px solid var(--emotion);background:var(--emotion-l)}
+tbody tr.row-e:not(.row-u):hover{background:#fef3c7}
+
+/* 배지 */
+.badge{display:inline-block;padding:3px 9px;border-radius:6px;font-size:.75rem;font-weight:600;border:1px solid;white-space:nowrap}
+.b-레브릭스{background:var(--rebrix-l);color:var(--rebrix);border-color:#c5d0fb}
+.b-펜다소파{background:var(--penda-l);color:var(--penda);border-color:#a7f3ea}
+.b-구매문의{background:#eff6ff;color:#2563eb;border-color:#bfdbfe}
+.b-배송문의{background:#fffbeb;color:#b45309;border-color:#fde68a}
+.b-AS문의  {background:#f5f3ff;color:#7c3aed;border-color:#ddd6fe}
+.b-컴플레인{background:var(--accent-l);color:var(--accent);border-color:#f9c9be}
+
+/* 썸네일 */
+.tstrip{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.th{width:72px;height:72px;border-radius:9px;object-fit:cover;border:2px solid var(--border);cursor:zoom-in;transition:transform .15s,box-shadow .15s,border-color .15s}
+.th:hover{transform:scale(1.05);box-shadow:0 4px 14px rgba(0,0,0,.22);border-color:var(--ink-3)}
+.th-more{width:72px;height:72px;border-radius:9px;background:var(--bg);border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;color:var(--ink-3);cursor:pointer;gap:3px}
+.th-more:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* 상태 버튼 */
+.sbtn{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1px solid;font-family:inherit;font-size:.77rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.sbtn.done{background:var(--green-l);border-color:#a8d8be;color:var(--green)}
+.sbtn.done:hover{background:#d4eddf}
+.sbtn.pend{background:var(--accent-l);border-color:#f9c9be;color:var(--accent)}
+.sbtn.pend:hover{background:#fce3dc}
+.sdot{width:6px;height:6px;border-radius:50%}
+.sbtn.done .sdot{background:var(--green)}.sbtn.pend .sdot{background:var(--accent)}
+
+/* 액션 */
+.acts{display:flex;gap:2px;opacity:0;transition:opacity .15s}
+tbody tr:hover .acts{opacity:1}
+.ibt{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:7px;color:var(--ink-3);transition:all .15s;display:flex;align-items:center}
+.ibt.ed:hover{background:#eff6ff;color:#2563eb}
+.ibt.dl:hover{background:var(--accent-l);color:var(--accent)}
+.content-cell{min-width:200px;max-width:340px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;white-space:normal;color:var(--ink-2);font-size:.88rem;line-height:1.55}
+
+/* 빈 상태 */
+.empty{padding:56px 0;text-align:center;color:var(--ink-3)}
+.empty-ico{font-size:2rem;margin-bottom:10px}
+.empty p{font-size:.9rem}
+.empty small{font-size:.77rem;margin-top:4px;display:block}
+
+/* 모달 공통 */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.38);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:20px}
+.ov.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.2);animation:pop .2s ease;width:100%}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.m-hd{padding:17px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.m-hd h3{font-size:.95rem;font-weight:600}
+.m-x{border:none;background:transparent;cursor:pointer;color:var(--ink-3);font-size:1.1rem;padding:3px 7px;border-radius:6px;transition:background .15s}
+.m-x:hover{background:var(--bg)}
+.m-bd{padding:22px;max-height:80vh;overflow-y:auto}
+.m-ft{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.btn-g{padding:0 16px;height:36px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:inherit;font-size:.84rem;cursor:pointer;color:var(--ink-2);transition:background .15s}
+.btn-g:hover{background:var(--bg)}
+.btn-d{padding:0 16px;height:36px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:inherit;font-size:.84rem;font-weight:500;cursor:pointer;transition:background .15s}
+.btn-d:hover{background:#b84a2e}
+.btn-s{padding:0 20px;height:36px;border:none;border-radius:8px;background:var(--ink);color:#fff;font-family:inherit;font-size:.84rem;font-weight:500;cursor:pointer;transition:background .15s}
+.btn-s:hover{background:#333}.btn-s:disabled{background:#bbb;cursor:not-allowed}
+
+/* 상세보기 */
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.det-row{display:contents}
+.det-row:not(:last-child) .dk,.det-row:not(:last-child) .dv{border-bottom:1px solid var(--border)}
+.dk{background:var(--bg);padding:12px 16px;font-size:.74rem;font-weight:600;color:var(--ink-3);letter-spacing:.05em;text-transform:uppercase;display:flex;align-items:center}
+.dv{padding:12px 16px;font-size:.92rem;color:var(--ink);display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.det-content{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:14px 16px;font-size:.92rem;line-height:1.85;color:var(--ink);white-space:pre-wrap;word-break:break-all;margin-bottom:20px;min-height:80px}
+.det-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:4px}
+.det-photo{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;border:1px solid var(--border);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.det-photo:hover{transform:scale(1.03);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.sec-title{font-size:.73rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.flag-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.8rem;font-weight:600;border:1px solid}
+.flag-pill.urg{background:var(--urgent-l);border-color:#fca5a5;color:var(--urgent)}
+.flag-pill.emo{background:var(--emotion-l);border-color:#fcd34d;color:var(--emotion)}
+.det-acts{display:flex;gap:8px}
+.btn-edit-sm{display:inline-flex;align-items:center;gap:5px;padding:0 16px;height:36px;border-radius:8px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;font-family:inherit;font-size:.83rem;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-edit-sm:hover{background:#dbeafe}
+.btn-del-sm{display:inline-flex;align-items:center;gap:5px;padding:0 16px;height:36px;border-radius:8px;background:var(--accent-l);color:var(--accent);border:1px solid #f9c9be;font-family:inherit;font-size:.83rem;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-del-sm:hover{background:#fce3dc}
+
+/* 라이트박스 */
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:600;flex-direction:column;align-items:center;justify-content:center}
+#lb.open{display:flex}
+#lb-img{max-width:calc(100vw - 130px);max-height:calc(100vh - 80px);object-fit:contain;border-radius:8px}
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;font-size:1.3rem;backdrop-filter:blur(4px)}
+.lb-nav:hover{background:rgba(255,255,255,.22)}
+#lb-prev{left:14px}#lb-next{right:14px}
+#lb-x{position:fixed;top:14px;right:14px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+#lb-x:hover{background:rgba(255,255,255,.2)}
+#lb-c{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:.8rem;background:rgba(0,0,0,.4);padding:3px 14px;border-radius:20px}
+
+/* 토스트 */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--ink);color:#fff;padding:9px 20px;border-radius:10px;font-size:.83rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;z-index:999}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{background:var(--accent)}
+
+
+
+/* 월별 통계 패널 */
+.stats-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;display:none}
+.stats-panel.open{display:block}
+.stats-hd{padding:13px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.stats-hd-left{display:flex;align-items:center;gap:10px}
+.stats-body{padding:20px 22px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.stat-bar-row{display:flex;flex-direction:column;gap:5px}
+.stat-bar-label{font-size:.78rem;font-weight:600;color:var(--ink-2);display:flex;justify-content:space-between}
+.stat-bar-label span{color:var(--ink-3);font-weight:400}
+.stat-bar-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.stat-bar-fill{height:100%;background:var(--ink);border-radius:4px;transition:width .4s ease}
+.stat-bar-fill.pend{background:var(--accent)}
+.stat-bar-fill.done{background:var(--green)}
+.stats-toggle-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-family:inherit;font-size:.8rem;font-weight:500;color:var(--ink-2);cursor:pointer;transition:all .15s;box-shadow:var(--sh)}
+.stats-toggle-btn:hover{background:var(--bg);border-color:var(--ink-3)}
+.stats-toggle-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.stat-summary{display:flex;gap:20px;margin-bottom:18px;flex-wrap:wrap}
+.stat-kpi{text-align:center;padding:12px 20px;background:var(--bg);border-radius:10px;border:1px solid var(--border)}
+.stat-kpi-num{font-size:1.6rem;font-weight:700;color:var(--ink);line-height:1}
+.stat-kpi-lbl{font-size:.72rem;color:var(--ink-3);margin-top:4px}
+/* 최초배송팀 필드 애니메이션 */
+.field-delivery{overflow:hidden;transition:max-height .25s ease, opacity .25s ease;max-height:0;opacity:0;pointer-events:none}
+.field-delivery.show{max-height:120px;opacity:1;pointer-events:auto}
+.delivery-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:6px;font-size:.73rem;font-weight:600;background:#f0f9ff;border:1px solid #bae6fd;color:#0369a1;white-space:nowrap}
+
+/* ── 로그인 스크린 ── */
+#login-screen{position:fixed;inset:0;z-index:2000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,.12);overflow:hidden}
+.login-top{padding:36px 36px 24px;text-align:center;border-bottom:1px solid var(--border);background:var(--ink)}
+.login-logo{font-family:'Noto Serif KR',serif;font-size:1.15rem;font-weight:600;color:#fff;margin-bottom:4px}
+.login-sub{font-size:.78rem;color:rgba(255,255,255,.55)}
+.login-body{padding:28px 36px 32px;display:flex;flex-direction:column;gap:14px}
+.login-field label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:5px}
+.login-field input{width:100%;height:42px;padding:0 14px;border:1px solid var(--border);border-radius:9px;background:var(--bg);font-family:inherit;font-size:.92rem;outline:none;transition:border-color .15s,box-shadow .15s}
+.login-field input:focus{border-color:var(--ink);background:var(--surface);box-shadow:0 0 0 3px rgba(26,26,26,.07)}
+.login-btn{width:100%;height:44px;border:none;border-radius:9px;background:var(--ink);color:#fff;font-family:inherit;font-size:.92rem;font-weight:600;cursor:pointer;margin-top:4px;transition:background .15s}
+.login-btn:hover{background:#333}
+.login-btn:disabled{background:#bbb;cursor:not-allowed}
+.login-err{font-size:.82rem;color:var(--accent);text-align:center;min-height:20px}
+/* ── 헤더 사용자 영역 ── */
+.hd-user{display:flex;align-items:center;gap:10px}
+.hd-username{font-size:.82rem;color:var(--ink-2);font-weight:500}
+.hd-badge{font-size:.68rem;padding:2px 7px;border-radius:10px;background:var(--rebrix-l);color:var(--rebrix);font-weight:600}
+.hd-badge.admin-badge{background:#fef3c7;color:#b45309}
+.btn-hd{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:transparent;font-family:inherit;font-size:.78rem;font-weight:500;color:var(--ink-2);cursor:pointer;transition:all .15s}
+.btn-hd:hover{background:var(--bg);border-color:var(--ink-3)}
+.btn-hd.admin{border-color:#c5d0fb;color:var(--rebrix);background:var(--rebrix-l)}
+/* ── 관리자 패널 ── */
+.user-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:4px}
+.user-table th{padding:8px 12px;text-align:left;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--border);background:var(--bg)}
+.user-table td{padding:10px 12px;border-bottom:1px solid #f0eeea;vertical-align:middle}
+.user-table tr:last-child td{border-bottom:none}
+.admin-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.admin-section-title{font-size:.75rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:14px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px}
+
+/* ═══ 모바일 전용 CSS ═══ */
+@media(max-width:768px){
+  /* 헤더 */
+  .hd{height:auto;padding:10px 14px;flex-wrap:wrap;gap:8px}
+  .logo span:last-child{display:none}
+  .hd-user{gap:6px;flex-wrap:wrap}
+  .live{display:none}
+  .hd-username{font-size:.78rem}
+  .btn-hd{padding:4px 9px;font-size:.74rem}
+
+  /* 본문 */
+  main{padding:12px 10px 100px;gap:14px}
+
+  /* 폼 그리드 */
+  .grid{grid-template-columns:1fr 1fr}
+  .form-body{padding:14px}
+
+  /* 탭 — 2열 그리드로 크게 */
+  .filter-bar{flex-direction:column;align-items:stretch;gap:8px}
+  .tabs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    padding:6px;
+    border-radius:12px;
+    background:var(--surface);
+    box-shadow:var(--sh);
+    border:1px solid var(--border);
+  }
+  .tab{
+    padding:10px 8px;
+    border-radius:9px;
+    font-size:.82rem;
+    font-weight:600;
+    justify-content:space-between;
+    white-space:nowrap;
+  }
+  .tbadge{font-size:.75rem;padding:2px 8px}
+  #pend-notice{text-align:center}
+
+  /* 테이블 숨기고 카드뷰 표시 */
+  .tw{display:none}
+  #card-list{display:flex;flex-direction:column;gap:10px}
+
+  /* 상세보기 모달 */
+  .det-grid{grid-template-columns:1fr}
+  .dk{border-bottom:none!important;padding-bottom:2px}
+  .dv{padding-top:4px;border-bottom:1px solid var(--border)}
+  .m-bd{padding:16px}
+  .det-photos{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+
+  /* 월별 통계 */
+  .stats-grid{grid-template-columns:1fr}
+  .stat-summary{gap:10px}
+  .stat-kpi{padding:10px 14px;flex:1;min-width:70px}
+  .stat-kpi-num{font-size:1.3rem}
+
+  /* 수정 모달 */
+  .admin-form-grid{grid-template-columns:1fr}
+}
+
+/* 모바일 카드 */
+.record-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:14px 16px;cursor:pointer;transition:box-shadow .15s,transform .1s;
+  position:relative;
+}
+.record-card:active{transform:scale(.985);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.record-card.card-u{border-left:4px solid var(--urgent);background:var(--urgent-l)}
+.record-card.card-e:not(.card-u){border-left:4px solid var(--emotion);background:var(--emotion-l)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.card-badges{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.card-name{font-weight:700;font-size:1rem;color:var(--ink)}
+.card-meta{font-size:.78rem;color:var(--ink-3);margin-top:2px}
+.card-content{font-size:.88rem;color:var(--ink-2);margin-top:8px;line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card-resolve{font-size:.82rem;color:var(--green);margin-top:6px;font-weight:500;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:6px}
+.card-status-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 13px;border-radius:20px;
+  border:1px solid;font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer}
+.card-photos{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.card-photo-thumb{width:50px;height:50px;border-radius:7px;object-fit:cover;border:1px solid var(--border);cursor:zoom-in}
+.card-flag{font-size:.9rem}
+.card-creator{font-size:.72rem;color:var(--ink-3);margin-top:4px}
+
+/* 데스크탑에서 카드뷰 숨기기 */
+@media(min-width:769px){
+  #card-list{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- 로그인 스크린 -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-top">
+      <div class="login-logo">레브릭스&amp;펜다소파</div>
+      <div class="login-sub">상담일지 관리 시스템</div>
+    </div>
+    <div class="login-body">
+      <div class="login-field"><label>아이디</label><input id="li-id" type="text" placeholder="아이디 입력" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="login-field"><label>비밀번호</label><input id="li-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="login-err" id="li-err"></div>
+      <button class="login-btn" id="li-btn" onclick="doLogin()">로그인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 헤더 -->
+<header>
+  <div class="hd">
+    <div class="logo"><div class="logo-dot"></div><span style="font-size:.95rem">레브릭스&amp;펜다소파</span><span style="font-size:.78rem;color:var(--ink-3);font-family:'Noto Sans KR',sans-serif;font-weight:400;margin-left:2px">상담일지</span></div>
+    <div class="hd-user">
+      <div class="live" style="margin-right:8px"><div class="live-dot" id="live-dot"></div><span id="live-txt">연결 중…</span>&nbsp;|&nbsp;<span id="hdr-cnt">총 0건</span></div>
+      <span class="hd-username" id="hdr-username"></span>
+      <span class="hd-badge" id="hdr-badge" style="display:none"></span>
+      <button class="btn-hd admin" id="btn-admin" onclick="openAdmin()" style="display:none">⚙ 관리자</button>
+      <button class="btn-hd" id="btn-myinfo" onclick="openMyInfo()">내 정보</button>
+      <button class="btn-hd" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- 신규 등록 폼 -->
+<div class="card">
+  <div class="card-hd" onclick="toggleRegForm()" style="cursor:pointer;user-select:none"><div class="card-bar"></div><span class="card-title">신규 상담 등록</span><span id="form-toggle-icon" style="margin-left:auto;font-size:.85rem;color:var(--ink-3);transition:transform .25s;display:inline-block">▲</span></div>
+  <div id="form-body-wrap" style="overflow:hidden;transition:max-height .35s ease,opacity .25s ease;max-height:2000px;opacity:1">
+  <div class="form-body">
+    <div class="grid">
+
+      <div class="field"><div class="lbl">브랜드</div>
+        <select id="f-brand"><option>레브릭스</option><option>펜다소파</option></select></div>
+
+      <div class="field"><div class="lbl">문의 유형</div>
+        <select id="f-type" onchange="syncDelivery('f')"><option>구매문의</option><option>배송문의</option><option>AS문의</option><option>컴플레인</option></select></div>
+
+      <div class="field"><div class="lbl">성함<span class="req">*</span></div>
+        <input id="f-name" type="text" placeholder="홍길동"/></div>
+
+      <div class="field"><div class="lbl">연락처<span class="req">*</span></div>
+        <input id="f-phone" type="text" placeholder="010-0000-0000" oninput="fmtPhone(this)" maxlength="13"/></div>
+
+      <div class="field"><div class="lbl">문의일<span class="req">*</span></div>
+        <input id="f-iqd" type="date"/></div>
+
+      <div class="field"><div class="lbl">희망일</div>
+        <input id="f-wsh" type="date"/></div>
+
+      <div class="field field-delivery" id="f-delivery-wrap">
+        <div class="lbl">최초배송팀 <span style="color:var(--accent);margin-left:2px">*</span></div>
+        <input id="f-delivery" type="text" placeholder="예: 1팀, 홍길동팀 등"/>
+      </div>
+
+      <div class="field"><div class="lbl">처리 상태</div>
+        <button class="tog" id="f-tog" type="button" onclick="togForm()">
+          <span class="tog-dot"></span><span id="f-tog-txt">미처리</span></button></div>
+
+      <div class="field"><div class="lbl">특이사항</div>
+        <div class="checks">
+          <label class="ci urg" onclick="chk('fu')">
+            <input type="checkbox" id="fu" style="display:none"/>
+            <div class="cb" id="fu-b"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="2 6 5 9 10 3"/></svg></div>🔴 긴급</label>
+          <label class="ci emo" onclick="chk('fe')">
+            <input type="checkbox" id="fe" style="display:none"/>
+            <div class="cb" id="fe-b"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="2 6 5 9 10 3"/></svg></div>💢 고강도 감성AS</label>
+        </div></div>
+
+      <div class="field field-full"><div class="lbl">문의사항</div>
+        <textarea id="f-content" rows="4" placeholder="고객 문의 내용을 상세히 입력하세요..."></textarea></div>
+
+      <div class="field field-full"><div class="lbl">처리내용 <span class="img-limit">(처리 후 작성 — 처리내역 탭에서 확인 가능)</span></div>
+        <textarea id="f-resolve" rows="3" placeholder="처리한 내용을 입력하세요... (선택사항)"></textarea></div>
+
+      <div class="field field-full">
+        <div class="lbl">사진 첨부 <span class="img-limit">(장당 자동 압축 · 최대 5장)</span></div>
+        <div class="up-area" id="f-drop" onclick="event.target===this&&G('f-files').click()"
+             ondragover="event.preventDefault()" ondrop="onDrop(event,'f')">
+          <input type="file" id="f-files" accept="image/*" multiple style="display:none" onchange="onAdd(this.files,'f')"/>
+          <div class="up-ph" id="f-ph" onclick="G('f-files').click()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            클릭 또는 드래그하여 사진 첨부
+          </div>
+          <div class="prev-strip" id="f-prev"></div>
+          <div class="prog-wrap" id="f-pw" style="display:none"><div class="prog-bar" id="f-pb"></div></div>
+          <div class="upload-stat" id="f-stat" style="display:none"></div>
+        </div></div>
+
+    </div>
+  </div>
+  <div class="form-foot">
+    <button class="btn-p" id="f-sub" onclick="submitForm()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      등록하기</button></div>
+  </div><!-- /form-body-wrap -->
+</div>
+
+<!-- 월별 통계 패널 -->
+<div class="stats-panel" id="stats-panel">
+  <div class="stats-hd">
+    <div class="stats-hd-left"><div class="card-bar"></div><span class="card-title">월별 문의 통계</span></div>
+    <button class="m-x" onclick="toggleStats()">✕</button>
+  </div>
+  <div class="stats-body">
+    <div class="stat-summary" id="stat-summary"></div>
+    <div class="stats-grid" id="stats-grid"></div>
+  </div>
+</div>
+
+<!-- 필터 탭 -->
+<div class="filter-bar">
+  <div class="tabs" id="tabs-container"></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="stats-toggle-btn" id="stats-btn" onclick="toggleStats()">📊 월별 통계</button>
+    <span id="pend-notice" style="display:none;font-size:.78rem;color:var(--accent);font-weight:500"></span>
+  </div>
+</div>
+
+<!-- 테이블 (데스크탑) -->
+<div class="card">
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>특이</th><th>브랜드</th><th>유형</th><th>성함</th>
+        <th>연락처</th><th id="th-iqd" onclick="toggleSort()" style="cursor:pointer;user-select:none;white-space:nowrap">문의일 <span id="sort-icon">↕</span></th><th>문의사항</th><th>처리내용</th>
+        <th>사진</th><th>처리상태</th><th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="empty" class="empty" style="display:none">
+      <div class="empty-ico">📋</div>
+      <p id="empty-msg">등록된 상담 내역이 없습니다.</p>
+      <small>위 폼을 통해 새로운 상담을 등록해 보세요.</small>
+    </div>
+  </div>
+</div>
+
+<!-- 카드 리스트 (모바일) -->
+<div id="card-list"></div>
+
+</main>
+
+<!-- 상세보기 모달 -->
+<div class="ov" id="ov-det">
+  <div class="modal" style="max-width:700px">
+    <div class="m-hd"><h3 id="det-title">상세보기</h3><button class="m-x" onclick="closeDet()">✕</button></div>
+    <div class="m-bd">
+      <div class="det-grid" id="det-grid"></div>
+      <div class="sec-title">문의사항</div>
+      <div class="det-content" id="det-content"></div>
+      <div id="det-resolve-wrap" style="display:none">
+        <div class="sec-title" style="color:var(--green)">✅ 처리내용</div>
+        <div class="det-content" id="det-resolve" style="border-color:#a8d8be;background:var(--green-l)"></div>
+      </div>
+      <div id="det-pw" style="display:none">
+        <div class="sec-title">첨부 사진</div>
+        <div class="det-photos" id="det-photos"></div>
+      </div>
+    </div>
+    <div class="m-ft">
+      <div class="det-acts" id="det-acts"></div>
+      <button class="btn-g" onclick="closeDet()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 처리확인 모달 -->
+<div class="ov" id="ov-proc">
+  <div class="modal" style="max-width:420px">
+    <div class="m-hd"><h3>처리 완료로 변경</h3><button class="m-x" onclick="closeProc()">✕</button></div>
+    <div class="m-bd">
+      <p style="font-size:.88rem;color:var(--ink-2);margin-bottom:16px">이 상담 항목을 <strong style="color:var(--green)">처리완료</strong>로 변경합니다.<br>처리 내용을 입력하면 처리내역 탭에서 확인할 수 있습니다.</p>
+      <div class="field">
+        <div class="lbl">처리내용 <span class="img-limit">(선택사항)</span></div>
+        <textarea id="proc-resolve" rows="4" placeholder="처리한 내용을 간략히 기록하세요..."></textarea>
+      </div>
+    </div>
+    <div class="m-ft">
+      <button class="btn-g" onclick="closeProc()">취소</button>
+      <button class="btn-s" onclick="confirmProc()" style="background:var(--green)">✓ 처리완료로 변경</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- 미처리 복원 확인 모달 -->
+<div class="ov" id="ov-unproc">
+  <div class="modal" style="max-width:360px">
+    <div class="m-hd"><h3>미처리로 변경</h3><button class="m-x" onclick="closeProc()">✕</button></div>
+    <div class="m-bd">
+      <p style="font-size:.88rem;color:var(--ink-2)">이 항목을 <strong style="color:var(--accent)">미처리</strong> 상태로 되돌리겠습니까?</p>
+    </div>
+    <div class="m-ft">
+      <button class="btn-g" onclick="closeProc()">취소</button>
+      <button class="btn-d" onclick="confirmUnproc()">미처리로 변경</button>
+    </div>
+  </div>
+</div>
+
+<!-- 삭제 모달 -->
+<div class="ov" id="ov-del">
+  <div class="modal" style="max-width:330px">
+    <div class="m-hd"><h3>항목 삭제</h3><button class="m-x" onclick="closeDel()">✕</button></div>
+    <div class="m-bd"><p style="font-size:.87rem;color:var(--ink-2)">이 상담 내역을 삭제하면 복구할 수 없습니다. 계속할까요?</p></div>
+    <div class="m-ft"><button class="btn-g" onclick="closeDel()">취소</button><button class="btn-d" onclick="confirmDel()">삭제</button></div>
+  </div>
+</div>
+
+<!-- 수정 모달 -->
+<div class="ov" id="ov-edit">
+  <div class="modal" style="max-width:820px">
+    <div class="m-hd"><h3>상담 내역 수정</h3><button class="m-x" onclick="closeEdit()">✕</button></div>
+    <div class="m-bd">
+      <div class="grid">
+        <div class="field"><div class="lbl">브랜드</div><select id="e-brand"><option>레브릭스</option><option>펜다소파</option></select></div>
+        <div class="field"><div class="lbl">문의 유형</div><select id="e-type" onchange="syncDelivery('e')"><option>구매문의</option><option>배송문의</option><option>AS문의</option><option>컴플레인</option></select></div>
+        <div class="field"><div class="lbl">성함<span class="req">*</span></div><input id="e-name" type="text"/></div>
+        <div class="field"><div class="lbl">연락처<span class="req">*</span></div><input id="e-phone" type="text" oninput="fmtPhone(this)" maxlength="13"/></div>
+        <div class="field"><div class="lbl">문의일<span class="req">*</span></div><input id="e-iqd" type="date"/></div>
+        <div class="field"><div class="lbl">희망일</div><input id="e-wsh" type="date"/></div>
+        <div class="field field-delivery" id="e-delivery-wrap">
+          <div class="lbl">최초배송팀 <span style="color:var(--accent);margin-left:2px">*</span></div>
+          <input id="e-delivery" type="text" placeholder="예: 1팀, 홍길동팀 등"/>
+        </div>
+        <div class="field"><div class="lbl">처리 상태</div>
+          <button class="tog" id="e-tog" type="button" onclick="togEdit()">
+            <span class="tog-dot"></span><span id="e-tog-txt">미처리</span></button></div>
+        <div class="field"><div class="lbl">특이사항</div>
+          <div class="checks">
+            <label class="ci urg" onclick="chk('eu')"><input type="checkbox" id="eu" style="display:none"/>
+              <div class="cb" id="eu-b"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="2 6 5 9 10 3"/></svg></div>🔴 긴급</label>
+            <label class="ci emo" onclick="chk('ee')"><input type="checkbox" id="ee" style="display:none"/>
+              <div class="cb" id="ee-b"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="2 6 5 9 10 3"/></svg></div>💢 고강도 감성AS</label>
+          </div></div>
+        <div class="field field-full"><div class="lbl">문의사항</div><textarea id="e-content" rows="4"></textarea></div>
+        <div class="field field-full"><div class="lbl">처리내용 <span class="img-limit">(처리 후 작성)</span></div><textarea id="e-resolve" rows="3" placeholder="처리한 내용을 입력하세요..."></textarea></div>
+        <div class="field field-full" id="e-exist-w">
+          <div class="lbl">기존 사진 <span class="img-limit">(✕ 클릭 시 제거)</span></div>
+          <div class="prev-strip" id="e-exist"></div></div>
+        <div class="field field-full">
+          <div class="lbl">사진 추가 <span class="img-limit">(기존 + 추가 합산 최대 5장)</span></div>
+          <div class="up-area" id="e-drop" onclick="event.target===this&&G('e-files').click()"
+               ondragover="event.preventDefault()" ondrop="onDrop(event,'e')">
+            <input type="file" id="e-files" accept="image/*" multiple style="display:none" onchange="onAdd(this.files,'e')"/>
+            <div class="up-ph" onclick="G('e-files').click()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>새 사진 추가
+            </div>
+            <div class="prev-strip" id="e-new"></div>
+          </div></div>
+      </div>
+    </div>
+    <div class="m-ft"><button class="btn-g" onclick="closeEdit()">취소</button><button class="btn-s" id="e-save" onclick="saveEdit()">저장</button></div>
+  </div>
+</div>
+
+<!-- 라이트박스 -->
+<div id="lb">
+  <button id="lb-x" onclick="lbClose()">✕</button>
+  <button class="lb-nav" id="lb-prev" onclick="lbGo(-1)">&#8249;</button>
+  <img id="lb-img" src="" alt=""/>
+  <button class="lb-nav" id="lb-next" onclick="lbGo(1)">&#8250;</button>
+  <div id="lb-c"></div>
+</div>
+
+
+
+<!-- 내 정보 수정 모달 -->
+<div class="ov" id="ov-myinfo">
+  <div class="modal" style="max-width:440px">
+    <div class="m-hd"><h3>내 정보 수정</h3><button class="m-x" onclick="closeMyInfo()">✕</button></div>
+    <div class="m-bd">
+      <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:20px;border:1px solid var(--border)">
+        <div style="font-size:.72rem;color:var(--ink-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">현재 계정</div>
+        <div style="font-weight:600;font-size:.95rem" id="mi-label"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="field">
+          <div class="lbl">새 비밀번호 <span class="img-limit">(빈칸이면 변경 안 함)</span></div>
+          <input id="mi-pw" type="password" placeholder="새 비밀번호"/>
+        </div>
+        <div class="field">
+          <div class="lbl">비밀번호 확인</div>
+          <input id="mi-pw2" type="password" placeholder="새 비밀번호 재입력"/>
+        </div>
+        <div class="field">
+          <div class="lbl">이메일</div>
+          <input id="mi-email" type="email" placeholder="example@email.com"/>
+        </div>
+        <div class="field">
+          <div class="lbl">전화번호</div>
+          <input id="mi-phone" type="text" placeholder="010-0000-0000" oninput="fmtPhone(this)" maxlength="13"/>
+        </div>
+      </div>
+    </div>
+    <div class="m-ft">
+      <button class="btn-g" onclick="closeMyInfo()">취소</button>
+      <button class="btn-s" onclick="saveMyInfo()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 관리자 패널 -->
+<div class="ov" id="ov-admin">
+  <div class="modal" style="max-width:700px">
+    <div class="m-hd"><h3>⚙ 관리자 — 계정 관리</h3><button class="m-x" onclick="closeAdmin()">✕</button></div>
+    <div class="m-bd">
+      <!-- 신규 계정 생성 -->
+      <div class="admin-section-title">신규 계정 생성</div>
+      <div class="admin-form-grid">
+        <div class="field"><div class="lbl">담당자 이름 <span class="req">*</span></div><input id="au-name" type="text" placeholder="홍길동"/></div>
+        <div class="field"><div class="lbl">아이디 <span class="req">*</span></div><input id="au-id" type="text" placeholder="영문/숫자" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')"/></div>
+        <div class="field"><div class="lbl">비밀번호 <span class="req">*</span></div><input id="au-pw" type="password" placeholder="비밀번호"/></div>
+        <div class="field"><div class="lbl">비밀번호 확인 <span class="req">*</span></div><input id="au-pw2" type="password" placeholder="비밀번호 재입력"/></div>
+        <div class="field"><div class="lbl">이메일 <span class="img-limit">(비밀번호 찾기용)</span></div><input id="au-email" type="email" placeholder="example@email.com"/></div>
+        <div class="field"><div class="lbl">전화번호 <span class="img-limit">(비밀번호 찾기용)</span></div><input id="au-phone" type="text" placeholder="010-0000-0000" oninput="fmtPhone(this)" maxlength="13"/></div>
+      </div>
+      <div style="margin-top:14px;display:flex;justify-content:flex-end">
+        <button class="btn-s" onclick="createUser()">계정 생성</button>
+      </div>
+      <!-- 수정 폼 (기본 숨김) -->
+      <div id="edit-user-wrap" style="display:none">
+        <div class="admin-section-title" style="margin-top:20px">계정 수정 — <span id="edit-user-id-label" style="color:var(--rebrix)"></span></div>
+        <div class="admin-form-grid">
+          <div class="field"><div class="lbl">담당자 이름 <span class="req">*</span></div><input id="eu-name" type="text" placeholder="홍길동"/></div>
+          <div class="field"><div class="lbl">새 비밀번호 <span class="img-limit">(빈칸이면 변경 안 함)</span></div><input id="eu-pw" type="password" placeholder="새 비밀번호"/></div>
+          <div class="field"><div class="lbl">비밀번호 확인</div><input id="eu-pw2" type="password" placeholder="새 비밀번호 재입력"/></div>
+          <div class="field"><div class="lbl">이메일</div><input id="eu-email" type="email" placeholder="example@email.com"/></div>
+          <div class="field"><div class="lbl">전화번호</div><input id="eu-phone" type="text" placeholder="010-0000-0000" oninput="fmtPhone(this)" maxlength="13"/></div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn-g" onclick="cancelEditUser()">취소</button>
+          <button class="btn-s" onclick="saveEditUser()">저장</button>
+        </div>
+      </div>
+
+      <!-- 계정 목록 -->
+      <div class="admin-section-title" style="margin-top:20px">등록된 계정</div>
+      <table class="user-table">
+        <thead><tr><th>이름</th><th>아이디</th><th>이메일</th><th>전화번호</th><th>생성일</th><th></th></tr></thead>
+        <tbody id="user-list-body"></tbody>
+      </table>
+    </div>
+    <div class="m-ft"><button class="btn-g" onclick="closeAdmin()">닫기</button></div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   인증 & 세션 관리
+   - 관리자: admin / 1154 (하드코딩)
+   - 일반 계정: Firebase users/ 경로에 저장
+   - 세션: localStorage, 8시간 유지
+═══════════════════════════════════════════════════ */
+const ADMIN_ID   = "admin";
+const ADMIN_PW   = "1154";
+const ADMIN_NAME = "김태웅실장";
+const SESSION_HOURS = 8;
+const USERS_URL = "https://rebrix-warehouse-default-rtdb.firebaseio.com/users";
+
+// 간단 해시 (내부 도구용 — 보안 강화 필요 시 Firebase Auth 도입 권장)
+async function simpleHash(str){
+  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+// 세션 확인
+function getSession(){
+  try{
+    const s=JSON.parse(localStorage.getItem("rp_session")||"null");
+    if(!s) return null;
+    if(Date.now()-s.loginTime > SESSION_HOURS*3600*1000){ localStorage.removeItem("rp_session"); return null; }
+    return s;
+  }catch{ return null; }
+}
+function saveSession(sess){ localStorage.setItem("rp_session", JSON.stringify({...sess, loginTime:Date.now()})); }
+function clearSession(){ localStorage.removeItem("rp_session"); }
+
+// 로그인 처리
+async function doLogin(){
+  const id=G("li-id").value.trim(), pw=G("li-pw").value;
+  if(!id||!pw){ G("li-err").textContent="아이디와 비밀번호를 입력해 주세요."; return; }
+  const btn=G("li-btn"); btn.disabled=true; btn.textContent="확인 중…";
+  G("li-err").textContent="";
+  try{
+    // 관리자 확인
+    if(id===ADMIN_ID && pw===ADMIN_PW){
+      saveSession({userId:"admin", name:ADMIN_NAME, role:"admin"});
+      afterLogin({userId:"admin", name:ADMIN_NAME, role:"admin"});
+      return;
+    }
+    // 일반 사용자 확인 (Firebase)
+    const hash=await simpleHash(pw);
+    // 5초 타임아웃으로 Firebase users 경로 조회
+    const ctrl=new AbortController();
+    const tmo=setTimeout(()=>ctrl.abort(),5000);
+    let res,user;
+    try{
+      res=await fetch(USERS_URL+"/"+id+".json",{signal:ctrl.signal});
+      clearTimeout(tmo);
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      user=await res.json();
+    }catch(fe){
+      clearTimeout(tmo);
+      if(fe.name==="AbortError"){ G("li-err").textContent="서버 응답 시간 초과. Firebase 규칙을 확인해 주세요."; return; }
+      G("li-err").textContent="서버 연결 실패: "+fe.message; return;
+    }
+    if(!user||typeof user!=="object"||user.error){ G("li-err").textContent="아이디 또는 비밀번호가 올바르지 않습니다."; return; }
+    if(user.password!==hash){ G("li-err").textContent="아이디 또는 비밀번호가 올바르지 않습니다."; return; }
+    const sess={userId:id, name:user.name, role:"user"};
+    saveSession(sess);
+    afterLogin(sess);
+  }catch(e){ G("li-err").textContent="로그인 중 오류가 발생했습니다."; console.error(e); }
+  finally{ btn.disabled=false; btn.textContent="로그인"; }
+}
+
+function afterLogin(sess){
+  // DOM 업데이트 (오류가 나도 startSSE는 반드시 실행)
+  try{
+    var ls=G("login-screen"); if(ls) ls.style.display="none";
+    var un=G("hdr-username"); if(un) un.textContent=sess.name||"";
+    var badge=G("hdr-badge");
+    if(badge){
+      badge.textContent=sess.role==="admin"?"관리자":"상담원";
+      badge.className="hd-badge"+(sess.role==="admin"?" admin-badge":"");
+      badge.style.display="";
+    }
+    var ba=G("btn-admin"); if(ba) ba.style.display=sess.role==="admin"?"":"none";
+  }catch(e){ console.warn("afterLogin DOM 오류:", e); }
+  // SSE는 항상 실행
+  try{ startSSE(); }catch(e){ console.error("startSSE 실패:", e); }
+  try{ syncDelivery("f"); }catch(e){}
+}
+
+function doLogout(){
+  clearSession();
+  location.reload();
+}
+
+// 페이지 로드 시 세션 체크
+(function initAuth(){
+  try{
+    var sess=getSession();
+    if(sess){ afterLogin(sess); }
+    else {
+      var ls=G("login-screen");
+      if(ls) ls.style.display="flex";
+      else document.body.style.visibility="visible";
+    }
+  }catch(e){
+    console.error("initAuth 오류:", e);
+    var ls=G("login-screen");
+    if(ls) ls.style.display="flex";
+  }
+})();
+
+/* ── 관리자: 계정 관리 ── */
+function openAdmin(){
+  G("ov-admin").classList.add("open");
+  loadUserList();
+}
+function closeAdmin(){ G("ov-admin").classList.remove("open"); }
+
+async function loadUserList(){
+  const tbody=G("user-list-body");
+  tbody.innerHTML=`<tr><td colspan="6" style="color:var(--ink-3);text-align:center;padding:16px">불러오는 중…</td></tr>`;
+  try{
+    const res=await fetch(`${USERS_URL}.json`);
+    const data=await res.json()||{};
+    const users=Object.entries(data);
+    if(!users.length){
+      tbody.innerHTML=`<tr><td colspan="6" style="color:var(--ink-3);text-align:center;padding:16px">등록된 계정이 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML=users.map(([uid,u])=>`
+      <tr>
+        <td style="font-weight:500">${esc(u.name||"")}</td>
+        <td style="color:var(--ink-2)">${esc(uid)}</td>
+        <td style="color:var(--ink-3)">${esc(u.email||"—")}</td>
+        <td style="color:var(--ink-3)">${esc(u.phone||"—")}</td>
+        <td style="color:var(--ink-3);white-space:nowrap">${u.createdAt?new Date(u.createdAt).toLocaleDateString("ko-KR"):"—"}</td>
+        <td style="white-space:nowrap;display:flex;gap:5px">
+          <button onclick="startEditUser('${uid}')" style="border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;border-radius:6px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-family:inherit">수정</button>
+          <button onclick="deleteUser('${uid}')" style="border:none;background:var(--accent-l);color:var(--accent);border-radius:6px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-family:inherit">삭제</button>
+        </td>
+      </tr>`).join("");
+  }catch(e){ tbody.innerHTML=`<tr><td colspan="6" style="color:var(--accent);text-align:center">불러오기 실패</td></tr>`; }
+}
+
+async function createUser(){
+  const name=G("au-name").value.trim(), uid=G("au-id").value.trim();
+  const pw=G("au-pw").value, pw2=G("au-pw2").value;
+  const email=G("au-email").value.trim(), phone=G("au-phone").value.trim();
+  if(!name||!uid||!pw){ toast("이름, 아이디, 비밀번호는 필수입니다.","e"); return; }
+  if(pw!==pw2){ toast("비밀번호가 일치하지 않습니다.","e"); return; }
+  if(uid===ADMIN_ID){ toast("admin은 예약된 아이디입니다.","e"); return; }
+  try{
+    // 중복 확인
+    const chk=await fetch(`${USERS_URL}/${uid}.json`);
+    const existing=await chk.json();
+    if(existing){ toast("이미 사용 중인 아이디입니다.","e"); return; }
+    const hash=await simpleHash(pw);
+    await fetch(`${USERS_URL}/${uid}.json`,{
+      method:"PUT", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name, password:hash, email, phone, createdAt:Date.now()})
+    });
+    toast(`${name} 계정이 생성되었습니다.`);
+    ["au-name","au-id","au-pw","au-pw2","au-email","au-phone"].forEach(id=>G(id).value="");
+    loadUserList();
+  }catch(e){ toast("계정 생성 실패: "+e.message,"e"); }
+}
+
+/* ── 내 정보 수정 (상담사 본인) ── */
+async function openMyInfo(){
+  const sess=getSession();
+  if(!sess){ toast("로그인이 필요합니다.","e"); return; }
+
+  // 라벨 표시
+  G("mi-label").textContent=sess.name+" ("+sess.userId+")";
+  G("mi-pw").value=""; G("mi-pw2").value="";
+
+  // 관리자는 Firebase에 저장된 정보 없으므로 email/phone 빈칸
+  if(sess.userId==="admin"){
+    G("mi-email").value=""; G("mi-phone").value="";
+  } else {
+    try{
+      const r=await fetch(USERS_URL+"/"+sess.userId+".json");
+      const u=await r.json();
+      G("mi-email").value=(u&&u.email)||"";
+      G("mi-phone").value=(u&&u.phone)||"";
+    }catch(e){ G("mi-email").value=""; G("mi-phone").value=""; }
+  }
+  G("ov-myinfo").classList.add("open");
+}
+
+function closeMyInfo(){ G("ov-myinfo").classList.remove("open"); }
+
+async function saveMyInfo(){
+  const sess=getSession();
+  if(!sess) return;
+  const pw=G("mi-pw").value, pw2=G("mi-pw2").value;
+  const email=G("mi-email").value.trim(), phone=G("mi-phone").value.trim();
+  if(pw && pw!==pw2){ toast("비밀번호가 일치하지 않습니다.","e"); return; }
+
+  if(sess.userId==="admin"){
+    toast("관리자 비밀번호는 코드에서 직접 변경해 주세요.","e"); return;
+  }
+  try{
+    const update={email, phone};
+    if(pw){ update.password=await simpleHash(pw); }
+    await fetch(USERS_URL+"/"+sess.userId+".json",{
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(update)
+    });
+    toast("내 정보가 수정되었습니다. ✓");
+    closeMyInfo();
+  }catch(e){ toast("저장 실패: "+e.message,"e"); }
+}
+
+// 수정할 계정 아이디 저장
+let editingUserId = null;
+
+function startEditUser(uid){
+  // 현재 데이터 가져오기
+  fetch(USERS_URL+"/"+uid+".json")
+    .then(r=>r.json())
+    .then(u=>{
+      if(!u){ toast("계정 정보를 불러올 수 없습니다.","e"); return; }
+      editingUserId = uid;
+      G("edit-user-id-label").textContent = uid;
+      G("eu-name").value  = u.name  || "";
+      G("eu-pw").value    = "";
+      G("eu-pw2").value   = "";
+      G("eu-email").value = u.email || "";
+      G("eu-phone").value = u.phone || "";
+      G("edit-user-wrap").style.display = "";
+      G("edit-user-wrap").scrollIntoView({behavior:"smooth", block:"nearest"});
+    })
+    .catch(()=>toast("불러오기 실패","e"));
+}
+
+function cancelEditUser(){
+  editingUserId = null;
+  G("edit-user-wrap").style.display = "none";
+  ["eu-name","eu-pw","eu-pw2","eu-email","eu-phone"].forEach(id=>G(id).value="");
+}
+
+async function saveEditUser(){
+  if(!editingUserId){ toast("수정할 계정이 선택되지 않았습니다.","e"); return; }
+  const name  = G("eu-name").value.trim();
+  const pw    = G("eu-pw").value;
+  const pw2   = G("eu-pw2").value;
+  const email = G("eu-email").value.trim();
+  const phone = G("eu-phone").value.trim();
+  if(!name){ toast("담당자 이름은 필수입니다.","e"); return; }
+  if(pw && pw!==pw2){ toast("비밀번호가 일치하지 않습니다.","e"); return; }
+  try{
+    const update = {name, email, phone};
+    if(pw){ update.password = await simpleHash(pw); }
+    // PATCH로 일부 필드만 업데이트
+    await fetch(USERS_URL+"/"+editingUserId+".json",{
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(update)
+    });
+    toast(name+" 계정이 수정되었습니다.");
+    cancelEditUser();
+    loadUserList();
+  }catch(e){ toast("수정 실패: "+e.message,"e"); }
+}
+
+async function deleteUser(uid){
+  if(!confirm(`'${uid}' 계정을 삭제하시겠습니까?`)) return;
+  try{
+    await fetch(`${USERS_URL}/${uid}.json`,{method:"DELETE"});
+    toast("계정이 삭제되었습니다.");
+    loadUserList();
+  }catch(e){ toast("삭제 실패","e"); }
+}
+
+/* ═══════════════════════════════════════════════════
+   ★ 설정 — databaseURL만 있으면 바로 동작합니다
+═══════════════════════════════════════════════════ */
+const DB_URL  = "https://rebrix-warehouse-default-rtdb.firebaseio.com";
+const DB_PATH = "consultations";
+
+/* ═══════════════════════════════════════════════════
+   REST API 헬퍼 (SDK 불필요)
+═══════════════════════════════════════════════════ */
+const API = {
+  base: `${DB_URL}/${DB_PATH}`,
+
+  async post(data) {
+    const r = await fetch(`${this.base}.json`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    return r.json(); // { name: "-newKey" }
+  },
+
+  async patch(key, data) {
+    const r = await fetch(`${this.base}/${key}.json`, {
+      method:"PATCH", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+  },
+
+  async del(key) {
+    const r = await fetch(`${this.base}/${key}.json`, { method:"DELETE" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+  },
+};
+
+/* ═══════════════════════════════════════════════════
+   실시간 구독 — Firebase SSE (EventSource)
+   API 키 없이 동작 · 자동 재연결
+═══════════════════════════════════════════════════ */
+let allData = {};  // key → record
+let sseEs   = null;
+
+function startSSE() {
+  try{ if(sseEs) sseEs.close(); }catch(e){}
+  try{ sseEs = new EventSource(DB_URL+"/"+DB_PATH+".json"); }
+  catch(e){ console.error("EventSource 생성 실패:", e); setTimeout(startSSE,5000); return; }
+
+  sseEs.addEventListener("put", e => {
+    try {
+      const { path, data } = JSON.parse(e.data);
+      if (path === "/") {
+        allData = data || {};
+      } else {
+        const key = path.slice(1);
+        if (data === null) delete allData[key];
+        else allData[key] = {...(allData[key]||{}), ...data};
+      }
+      syncRecords();
+    } catch(err){ console.error("SSE put error:", err); }
+  });
+
+  sseEs.addEventListener("patch", e => {
+    try {
+      const { path, data } = JSON.parse(e.data);
+      if(path && path !== "/") {
+        const key = path.slice(1);
+        if(!allData[key]) allData[key]={};
+        Object.assign(allData[key], data||{});
+      } else {
+        Object.assign(allData, data||{});
+      }
+      syncRecords();
+    } catch(err){ console.error("SSE patch error:", err); }
+  });
+
+  sseEs.onopen  = () => { G("live-dot").classList.add("connected"); G("live-txt").textContent="실시간 연결"; };
+  sseEs.onerror = () => {
+    try{ G("live-dot").classList.remove("connected"); G("live-txt").textContent="재연결 중…"; }catch(e){}
+    try{ sseEs.close(); }catch(e){}
+    setTimeout(startSSE, 3000);
+  };
+}
+
+function syncRecords() {
+  try {
+    records = Object.entries(allData)
+      .map(([id,v])=>({id,...v}))
+      .sort((a,b)=>b.createdAt-a.createdAt);
+    render();
+  } catch(err) {
+    console.error("syncRecords error:", err);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   전역 상태
+═══════════════════════════════════════════════════ */
+let records=[], filter="pending";
+let sortField="createdAt", sortDir=-1; // -1:내림차순 1:오름차순
+let fProc=false, eProc=false;
+let delId=null, editId=null, procId=null;
+let eExist=[], fFiles=[], eFiles=[];
+let lbImgs=[], lbIdx=0;
+const imgStore={}; // id → base64 배열 (onclick 속성에 base64 직접 삽입 방지)
+
+const TODAY = new Date().toISOString().slice(0,10);
+G("f-iqd").value = TODAY;
+G("f-wsh").value = "";
+syncDelivery("f");
+// startSSE는 afterLogin()에서 호출됨
+
+/* ═══════════════════════════════════════════════════
+   이미지 압축 → base64
+   (max 900px, quality 0.65 → ~60-150KB / 장)
+═══════════════════════════════════════════════════ */
+function compressToB64(file, maxW=900, q=0.65) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let w=img.width, h=img.height;
+        if (w > maxW) { h=Math.round(h*maxW/w); w=maxW; }
+        const cv = document.createElement("canvas");
+        cv.width=w; cv.height=h;
+        cv.getContext("2d").drawImage(img,0,0,w,h);
+        resolve(cv.toDataURL("image/jpeg", q));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function compressAll(files, statEl, pbEl, pwEl) {
+  if (!files.length) return [];
+  const MAX=5;
+  const limited = Array.from(files).slice(0, MAX);
+  if (files.length > MAX) toast(`사진은 최대 ${MAX}장까지 첨부 가능합니다.`,"e");
+  if (pwEl) pwEl.style.display="";
+  if (statEl) { statEl.style.display=""; statEl.textContent="🗜️ 압축 중…"; }
+  const result=[];
+  for(let i=0;i<limited.length;i++){
+    result.push(await compressToB64(limited[i]));
+    const pct = Math.round((i+1)/limited.length*100);
+    if(pbEl)   pbEl.style.width=`${pct}%`;
+    if(statEl) statEl.textContent=`🗜️ 압축 중… (${i+1}/${limited.length})`;
+  }
+  if(statEl) { statEl.textContent="✅ 완료!"; setTimeout(()=>{ statEl.style.display="none"; if(pwEl){pwEl.style.display="none";if(pbEl)pbEl.style.width="0%";}},700); }
+  return result;
+}
+
+/* ═══════════════════════════════════════════════════
+   신규 등록
+═══════════════════════════════════════════════════ */
+async function submitForm() {
+  const name=G("f-name").value.trim(), ph=G("f-phone").value.trim(), iqd=G("f-iqd").value;
+  if (!name||!ph||!iqd) { toast("성함, 연락처, 문의일을 입력해 주세요.","e"); return; }
+  const btn=G("f-sub"); btn.disabled=true; btn.textContent="저장 중…";
+  try {
+    const imgs = await compressAll(fFiles, G("f-stat"), G("f-pb"), G("f-pw"));
+    await API.post({
+      brand:G("f-brand").value, type:G("f-type").value,
+      name, phone:ph, inquiryDate:iqd, wishDate:G("f-wsh").value,
+      content:G("f-content").value.trim(),
+      processed:fProc, urgent:G("fu").checked, emotion:G("fe").checked,
+      resolve:G("f-resolve").value.trim(),
+      deliveryTeam:G("f-delivery").value.trim(),
+      images:imgs, createdAt:Date.now(),
+      createdBy:(getSession()||{}).name||"알 수 없음", createdById:(getSession()||{}).userId||"",
+    });
+    resetForm(); toast("상담 내역이 등록되었습니다.");
+  } catch(err) {
+    console.error(err); toast(`저장 실패: ${err.message}`,"e");
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 등록하기`;
+  }
+}
+
+function resetForm(){
+  ["f-name","f-content","f-resolve","f-delivery"].forEach(id=>G(id).value="");
+  syncDelivery("f");
+  G("f-phone").value=""; G("f-iqd").value=new Date().toISOString().slice(0,10); G("f-wsh").value="";
+  fFiles=[]; renderPrev("f-prev","f-ph",fFiles,'f');
+  setChk("fu",false); setChk("fe",false);
+  if(fProc) togForm();
+}
+
+/* ═══════════════════════════════════════════════════
+   처리 상태 토글
+═══════════════════════════════════════════════════ */
+function toggleStatus(id, cur) {
+  procId = id;
+  if (!cur) {
+    // 미처리 → 처리완료: 처리내용 입력 포함 확인 모달
+    G("proc-resolve").value = "";
+    G("ov-proc").classList.add("open");
+    setTimeout(()=>G("proc-resolve").focus(), 100);
+  } else {
+    // 처리완료 → 미처리: 간단 확인 모달
+    G("ov-unproc").classList.add("open");
+  }
+}
+function closeProc(){
+  procId=null;
+  G("ov-proc").classList.remove("open");
+  G("ov-unproc").classList.remove("open");
+}
+function confirmProc(){
+  if(!procId) return;
+  const id = procId;
+  const resolveText = G("proc-resolve").value.trim();
+  const update = {processed:true};
+  if(resolveText) update.resolve = resolveText;
+  closeProc();
+  // 낙관적 업데이트: API 응답 기다리지 않고 즉시 화면 반영
+  if(allData[id]){ Object.assign(allData[id], update); syncRecords(); }
+  API.patch(id, update)
+    .then(()=>toast("✅ 처리완료로 변경되었습니다."))
+    .catch(err=>{ toast(`변경 실패: ${err.message}`,"e"); /* 실패시 SSE가 원상복구 */ });
+}
+function confirmUnproc(){
+  if(!procId) return;
+  const id = procId;
+  closeProc();
+  // 낙관적 업데이트
+  if(allData[id]){ allData[id].processed = false; syncRecords(); }
+  API.patch(id, {processed:false})
+    .then(()=>toast("↩ 미처리로 변경되었습니다."))
+    .catch(err=>{ toast(`변경 실패: ${err.message}`,"e"); });
+}
+
+/* ═══════════════════════════════════════════════════
+   상세보기
+═══════════════════════════════════════════════════ */
+function openDet(id) {
+  const r=records.find(x=>x.id===id); if(!r) return;
+  G("det-title").textContent=`${r.name} 님 — ${r.type}`;
+  const flags=[
+    r.urgent ?`<span class="flag-pill urg">🔴 긴급</span>`:"",
+    r.emotion?`<span class="flag-pill emo">💢 고강도 감성AS</span>`:"",
+  ].filter(Boolean).join("");
+  G("det-grid").innerHTML=`
+    <div class="det-row"><div class="dk">브랜드</div><div class="dv"><span class="badge b-${esc(r.brand)}">${esc(r.brand||'')}</span></div></div>
+    <div class="det-row"><div class="dk">문의 유형</div><div class="dv"><span class="badge b-${esc(r.type)}">${esc(r.type)}</span></div></div>
+    <div class="det-row"><div class="dk">성함</div><div class="dv" style="font-weight:500">${esc(r.name)}</div></div>
+    <div class="det-row"><div class="dk">연락처</div><div class="dv">${esc(r.phone)}</div></div>
+    <div class="det-row"><div class="dk">문의일</div><div class="dv">${esc(r.inquiryDate||'—')}</div></div>
+    ${r.wishDate?`<div class="det-row"><div class="dk">희망일</div><div class="dv">${esc(r.wishDate)}</div></div>`:''}
+    <div class="det-row"><div class="dk">처리 상태</div><div class="dv">
+      <button class="sbtn ${r.processed?'done':'pend'}" onclick="toggleStatus('${r.id}',${r.processed})" title="${r.processed?'클릭하여 미처리로 변경':'클릭하여 처리완료로 변경'}">
+        <span class="sdot"></span>${r.processed?'완료':'미처리'}</button></div></div>
+    ${r.deliveryTeam?`<div class="det-row"><div class="dk">최초배송팀</div><div class="dv"><span class="delivery-tag">🚚 ${esc(r.deliveryTeam)}</span></div></div>`:''}
+    <div class="det-row"><div class="dk">등록자</div><div class="dv" style="gap:6px">
+      <span style="font-weight:500">${esc(r.createdBy||'알 수 없음')}</span>
+      ${r.createdAt?`<span style="font-size:.78rem;color:var(--ink-3)">${new Date(r.createdAt).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>`:''}
+    </div></div>
+    ${r.updatedBy?`<div class="det-row"><div class="dk">최종 수정</div><div class="dv" style="gap:6px">
+      <span style="font-weight:500">${esc(r.updatedBy)}</span>
+      ${r.updatedAt?`<span style="font-size:.78rem;color:var(--ink-3)">${new Date(r.updatedAt).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>`:''}
+    </div></div>`:''}
+    ${flags?`<div class="det-row"><div class="dk">특이사항</div><div class="dv" style="gap:8px">${flags}</div></div>`:""}
+  `;
+  G("det-content").textContent = r.content||"내용 없음";
+  const rw = G("det-resolve-wrap");
+  if(r.resolve && r.resolve.trim()){
+    rw.style.display="";
+    G("det-resolve").textContent = r.resolve;
+  } else {
+    rw.style.display="none";
+  }
+  const imgs=Array.isArray(r.images)?r.images.filter(Boolean):[];
+  G("det-pw").style.display=imgs.length?"":"none";
+  imgStore["__det__"]=imgs;
+  G("det-photos").innerHTML=imgs.map((u,i)=>
+    `<img class="det-photo" src="${u}" loading="lazy" title="클릭하여 크게 보기" onclick="lbOpen('__det__',${i})"/>`
+  ).join("");
+  G("det-acts").innerHTML=`
+    <button class="btn-edit-sm" onclick="closeDet();openEdit('${r.id}')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>수정</button>
+    <button class="btn-del-sm" onclick="closeDet();openDel('${r.id}')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>삭제</button>
+  `;
+  G("ov-det").classList.add("open");
+}
+function closeDet(){ G("ov-det").classList.remove("open"); }
+
+/* ═══════════════════════════════════════════════════
+   삭제
+═══════════════════════════════════════════════════ */
+function openDel(id){ delId=id; G("ov-del").classList.add("open"); }
+function closeDel(){ delId=null; G("ov-del").classList.remove("open"); }
+function confirmDel(){
+  if(!delId) return;
+  API.del(delId).then(()=>toast("삭제되었습니다.")).catch(err=>toast(`삭제 실패: ${err.message}`,"e"));
+  closeDel();
+}
+
+/* ═══════════════════════════════════════════════════
+   수정
+═══════════════════════════════════════════════════ */
+function openEdit(id){
+  const r=records.find(x=>x.id===id); if(!r) return;
+  editId=id;
+  G("e-brand").value=r.brand||"레브릭스"; G("e-type").value=r.type||"구매문의";
+  G("e-name").value=r.name||""; G("e-phone").value=r.phone||"";
+  G("e-iqd").value=r.inquiryDate||""; G("e-wsh").value=r.wishDate||"";
+  G("e-content").value=r.content||"";
+  G("e-resolve").value=r.resolve||"";
+  G("e-delivery").value=r.deliveryTeam||"";
+  syncDelivery("e");
+  eProc=!!r.processed; G("e-tog").classList.toggle("on",eProc); G("e-tog-txt").textContent=eProc?"처리완료":"미처리";
+  setChk("eu",!!r.urgent); setChk("ee",!!r.emotion);
+  eExist=Array.isArray(r.images)?r.images.filter(Boolean):[]; eFiles=[];
+  renderExist(); renderPrev("e-new",null,eFiles,'e');
+  G("ov-edit").classList.add("open");
+}
+function closeEdit(){ editId=null; G("ov-edit").classList.remove("open"); }
+
+async function saveEdit(){
+  const name=G("e-name").value.trim(), ph=G("e-phone").value.trim(), iqd=G("e-iqd").value;
+  if(!name||!ph||!iqd){ toast("성함, 연락처, 문의일을 입력해 주세요.","e"); return; }
+  const btn=G("e-save"); btn.disabled=true; btn.textContent="저장 중…";
+  try {
+    const newImgs = await compressAll(eFiles, null, null, null);
+    const allImgs = [...eExist, ...newImgs].slice(0,5);
+    await API.patch(editId,{
+      brand:G("e-brand").value, type:G("e-type").value,
+      name, phone:ph, inquiryDate:iqd, wishDate:G("e-wsh").value,
+      content:G("e-content").value.trim(),
+      processed:eProc, urgent:G("eu").checked, emotion:G("ee").checked,
+      resolve:G("e-resolve").value.trim(),
+      deliveryTeam:G("e-delivery").value.trim(),
+      images:allImgs,
+      updatedBy:(getSession()||{}).name||"알 수 없음", updatedById:(getSession()||{}).userId||"", updatedAt:Date.now(),
+    });
+    toast("수정되었습니다."); closeEdit();
+  } catch(err){ console.error(err); toast(`저장 실패: ${err.message}`,"e"); }
+  finally{ btn.disabled=false; btn.textContent="저장"; }
+}
+
+function renderExist(){
+  G("e-exist-w").style.display=eExist.length?"":"none";
+  G("e-exist").innerHTML=eExist.map((u,i)=>`
+    <div class="prev-item"><img src="${u}" loading="lazy"/>
+    <button class="prev-rm" onclick="rmExist(${i})">✕</button></div>`).join("");
+}
+function rmExist(i){ eExist.splice(i,1); renderExist(); }
+
+/* ═══════════════════════════════════════════════════
+   파일 선택 & 미리보기
+═══════════════════════════════════════════════════ */
+function onAdd(files,ns){
+  const arr=ns==='f'?fFiles:eFiles;
+  const remain = 5 - (ns==='e'?eExist.length:0) - arr.length;
+  const toAdd = Array.from(files).slice(0, Math.max(0, remain));
+  if(files.length > remain && remain > 0) toast(`최대 5장까지만 첨부 가능합니다. ${files.length-remain}장이 제외됩니다.`,"e");
+  if(remain <= 0){ toast("이미 최대 5장이 첨부되어 있습니다.","e"); }
+  toAdd.forEach(f=>arr.push(f));
+  ns==='f'?renderPrev("f-prev","f-ph",fFiles,'f'):renderPrev("e-new",null,eFiles,'e');
+  // 같은 파일을 다시 선택할 수 있도록 input 값 초기화
+  const inputId = ns==='f'?'f-files':'e-files';
+  G(inputId).value="";
+}
+function onDrop(e,ns){ e.preventDefault(); onAdd(e.dataTransfer.files,ns); }
+function renderPrev(stripId,phId,arr,ns){
+  G(stripId).innerHTML=arr.map((f,i)=>{
+    const url=URL.createObjectURL(f);
+    return `<div class="prev-item"><img src="${url}"/>
+      <button class="prev-rm" onclick="rmFile(${i},'${ns}')">✕</button></div>`;
+  }).join("");
+  if(phId) G(phId).style.display=arr.length?"none":"";
+}
+function rmFile(i,ns){
+  if(ns==='f'){ fFiles.splice(i,1); renderPrev("f-prev","f-ph",fFiles,'f'); }
+  else        { eFiles.splice(i,1); renderPrev("e-new",null,eFiles,'e'); }
+}
+
+/* ═══════════════════════════════════════════════════
+   라이트박스
+═══════════════════════════════════════════════════ */
+function lbOpen(idOrArr,idx){
+  if(Array.isArray(idOrArr)) lbImgs=idOrArr;
+  else if(typeof idOrArr==="string" && imgStore[idOrArr]) lbImgs=imgStore[idOrArr];
+  else lbImgs=[];
+  lbIdx=idx; lbRender(); G("lb").classList.add("open"); document.addEventListener("keydown",lbKey);
+}
+function lbClose(){ G("lb").classList.remove("open"); document.removeEventListener("keydown",lbKey); }
+function lbGo(d){ lbIdx=(lbIdx+d+lbImgs.length)%lbImgs.length; lbRender(); }
+function lbRender(){ G("lb-img").src=lbImgs[lbIdx]; G("lb-c").textContent=lbImgs.length>1?`${lbIdx+1} / ${lbImgs.length}`:""; G("lb-prev").style.display=G("lb-next").style.display=lbImgs.length>1?"":"none"; }
+function lbKey(e){ if(e.key==="ArrowLeft")lbGo(-1); if(e.key==="ArrowRight")lbGo(1); if(e.key==="Escape")lbClose(); }
+G("lb").addEventListener("click",e=>{ if(e.target===G("lb"))lbClose(); });
+
+/* ═══════════════════════════════════════════════════
+   필터 & 렌더
+═══════════════════════════════════════════════════ */
+function setF(f){
+  filter=f;
+  render(); // 탭은 render() 안에서 새로 그려짐
+}
+
+function render(){
+  try { _render(); } catch(err){ console.error("render error:", err); }
+}
+function _render(){
+  const pend=records.filter(r=>!r.processed);
+  const urg =records.filter(r=>r.urgent  && !r.processed);
+  const emo =records.filter(r=>r.emotion && !r.processed);
+  const res=records.filter(r=>r.processed===true);
+  G("hdr-cnt").textContent=`총 ${records.length}건`;
+  const n=G("pend-notice");
+  n.style.display=pend.length?"inline":"none";
+  n.textContent=pend.length?`⚑ 미처리 ${pend.length}건`:"";
+
+  // 탭을 매번 새로 그려 배지 상태 불일치 방지
+  const TAB_DEFS=[
+    {k:"all",     label:"전체",       cnt:records.length, style:""},
+    {k:"pending", label:"미처리",     cnt:pend.length,    style:"background:#ffe0d9;color:var(--accent)"},
+    {k:"urgent",  label:"🔴 긴급",    cnt:urg.length,     style:"background:#ffe0d9;color:var(--accent)"},
+    {k:"emotion", label:"💢 감성AS",  cnt:emo.length,     style:"background:#fef3c7;color:#b45309"},
+    {k:"resolved",label:"✅ 처리내역",cnt:res.length,     style:"background:var(--green-l);color:var(--green)"},
+  ];
+  const tabsEl = G("tabs-container");
+  if(tabsEl) tabsEl.innerHTML=TAB_DEFS.map(t=>
+    `<button class="tab${t.k===filter?" on":""}" onclick="setF('${t.k}')">${t.label}<span class="tbadge" style="${t.style}">${t.cnt}</span></button>`
+  ).join("");
+
+  const map={all:records,pending:pend,urgent:urg,emotion:emo,resolved:res};
+  // 정렬 적용
+  const raw=map[filter]||records;
+  const list=[...raw].sort((a,b)=>{
+    if(sortField==="inquiryDate"){
+      const av=a.inquiryDate||"", bv=b.inquiryDate||"";
+      return av<bv?-sortDir:av>bv?sortDir:0;
+    }
+    return (b.createdAt-a.createdAt)*-sortDir<0?1:-1;
+  });
+  // 정렬 아이콘 업데이트
+  const si=G("sort-icon");
+  if(si) si.textContent=sortField==="inquiryDate"?(sortDir===1?"↑":"↓"):"↕";
+  const thIqd=G("th-iqd");
+  if(thIqd) thIqd.style.color=sortField==="inquiryDate"?'var(--ink)':'';
+  const tbody=G("tbody"), empty=G("empty");
+  if(!list.length){
+    tbody.innerHTML=""; empty.style.display="block";
+    G("empty-msg").textContent=
+      filter==="pending"?"미처리 항목이 없습니다.":
+      filter==="urgent" ?"긴급 항목이 없습니다.":
+      filter==="emotion"?"고강도 감성AS 항목이 없습니다.":
+      filter==="resolved"?"처리완료된 항목이 없습니다.":"등록된 상담 내역이 없습니다.";
+    return;
+  }
+  empty.style.display="none";
+  renderCards(list); // 모바일 카드뷰
+  tbody.innerHTML=list.map(r=>{
+    const imgs=(Array.isArray(r.images)?r.images:[]).filter(Boolean);
+    imgStore[r.id]=imgs; // base64를 onclick 속성에 직접 넣지 않고 여기서 관리
+    const MAX=3;
+    let thumbs=imgs.slice(0,MAX).map((u,i)=>
+      `<img class="th" src="${u}" loading="lazy" title="클릭하여 크게 보기" onclick="event.stopPropagation();lbOpen('${r.id}',${i})"/>`
+    ).join("");
+    if(imgs.length>MAX) thumbs+=`<div class="th-more" onclick="event.stopPropagation();lbOpen('${r.id}',0)"><span style="font-size:1.1rem">🖼</span>+${imgs.length-MAX}</div>`;
+    const flags=(r.urgent?"🔴 ":"")+(r.emotion?"💢":"");
+    const rc=r.urgent?"row-u":(r.emotion?"row-e":"");
+    return `<tr class="${rc}" onclick="openDet('${r.id}')">
+      <td style="font-size:.95rem;white-space:nowrap;width:48px">${flags||"—"}</td>
+      <td style="white-space:nowrap"><span class="badge b-${esc(r.brand)}">${esc(r.brand||"")}</span></td>
+      <td style="white-space:nowrap">
+        <span class="badge b-${esc(r.type)}">${esc(r.type)}</span>
+        ${(r.type==="AS문의"||r.type==="컴플레인")&&r.deliveryTeam?`<br><span class="delivery-tag" style="margin-top:4px;display:inline-flex">🚚 ${esc(r.deliveryTeam)}</span>`:""}
+      </td>
+      <td style="white-space:nowrap">
+        <div style="font-weight:600;font-size:.93rem">${esc(r.name)}</div>
+        ${r.createdBy?`<div style="font-size:.72rem;color:var(--ink-3);margin-top:1px">✍ ${esc(r.createdBy)}</div>`:""}
+      </td>
+      <td style="color:var(--ink-2);white-space:nowrap;font-size:.88rem">${esc(r.phone)}</td>
+      <td style="color:var(--ink-2);white-space:nowrap;font-size:.88rem">${esc(r.inquiryDate||"")}</td>
+      <td style="width:220px"><div class="content-cell">${r.content?esc(r.content):'<span style="color:var(--ink-3);font-style:italic">없음</span>'}</div></td>
+      <td style="width:200px"><div class="content-cell ${r.resolve?"":"no-resolve"}">${r.resolve?esc(r.resolve):'<span style="color:var(--ink-3);font-style:italic">미기록</span>'}</div></td>
+      <td style="width:160px"><div class="tstrip">${thumbs||'<span style="color:var(--ink-3);font-size:.8rem">없음</span>'}</div></td>
+      <td style="white-space:nowrap"><button class="sbtn ${r.processed?"done":"pend"}" onclick="event.stopPropagation();toggleStatus('${r.id}',${r.processed})" title="${r.processed?"클릭하여 미처리로 변경":"클릭하여 처리완료로 변경"}">
+        <span class="sdot"></span>${r.processed?"완료":"미처리"}</button></td>
+      <td style="width:68px"><div class="acts">
+        <button class="ibt ed" onclick="event.stopPropagation();openEdit('${r.id}')" title="수정">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="ibt dl" onclick="event.stopPropagation();openDel('${r.id}')" title="삭제">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div></td>
+    </tr>`;
+  }).join("");
+}
+
+/* ═══════════════════════════════════════════════════
+   유틸
+═══════════════════════════════════════════════════ */
+function G(id){ return document.getElementById(id); }
+function fmtPhone(el){ const d=el.value.replace(/\D/g,"").slice(0,11); el.value=d.length<=3?d:d.length<=7?d.slice(0,3)+"-"+d.slice(3):d.slice(0,3)+"-"+d.slice(3,7)+"-"+d.slice(7); }
+function chk(id){ const i=G(id),b=G(id+"-b"); i.checked=!i.checked; b.classList.toggle("on",i.checked); }
+function setChk(id,v){ const i=G(id),b=G(id+"-b"); i.checked=v; b.classList.toggle("on",v); }
+function togForm(){ fProc=!fProc; G("f-tog").classList.toggle("on",fProc); G("f-tog-txt").textContent=fProc?"처리완료":"미처리"; }
+function togEdit(){ eProc=!eProc; G("e-tog").classList.toggle("on",eProc); G("e-tog-txt").textContent=eProc?"처리완료":"미처리"; }
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+// 모바일 카드 렌더 (template literal 없이 안전하게 작성)
+function renderCards(list){
+  var cl = G("card-list");
+  if(!cl) return;
+
+  if(!list || !list.length){
+    var em = G("empty-msg");
+    cl.innerHTML = '<div class="empty"><div class="empty-ico">📋</div><p>'
+      + (em ? em.textContent : "항목이 없습니다.")
+      + '</p></div>';
+    return;
+  }
+
+  var html = "";
+  for(var i=0; i<list.length; i++){
+    var r   = list[i];
+    var imgs = (Array.isArray(r.images) ? r.images : []).filter(Boolean);
+    imgStore[r.id] = imgs;
+
+    var cc = r.urgent ? "card-u" : (r.emotion ? "card-e" : "");
+
+    var flags = (r.urgent  ? "<span class='card-flag'>🔴</span>" : "")
+              + (r.emotion ? "<span class='card-flag'>💢</span>" : "");
+
+    var brandBadge = "<span class='badge b-" + esc(r.brand) + "' style='font-size:.7rem'>" + esc(r.brand||"") + "</span>";
+    var typeBadge  = "<span class='badge b-" + esc(r.type)  + "' style='font-size:.7rem'>" + esc(r.type)      + "</span>";
+    var delivTag   = r.deliveryTeam
+      ? "<span class='delivery-tag' style='font-size:.68rem'>🚚 " + esc(r.deliveryTeam) + "</span>"
+      : "";
+
+    var procBtn = r.processed
+      ? "<button class='card-status-btn sbtn done' onclick='event.stopPropagation();toggleStatus(\"" + r.id + "\",true)'>"
+          + "<span class='sdot' style='width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px'></span>완료</button>"
+      : "<button class='card-status-btn sbtn pend' onclick='event.stopPropagation();toggleStatus(\"" + r.id + "\",false)'>"
+          + "<span class='sdot' style='width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;margin-right:4px'></span>미처리</button>";
+
+    var photosHtml = "";
+    var maxP = Math.min(imgs.length, 4);
+    for(var p=0; p<maxP; p++){
+      photosHtml += "<img class='card-photo-thumb' src='" + imgs[p]
+        + "' onclick='event.stopPropagation();lbOpen(\"" + r.id + "\"," + p + ")' loading='lazy'/>";
+    }
+    if(imgs.length > 4){
+      photosHtml += "<span style='font-size:.72rem;color:var(--ink-3);align-self:center'>+" + (imgs.length-4) + "</span>";
+    }
+
+    var metaParts = [esc(r.phone)];
+    if(r.inquiryDate) metaParts.push(esc(r.inquiryDate));
+    if(r.wishDate)    metaParts.push("희망 " + esc(r.wishDate));
+
+    html += "<div class='record-card " + cc + "' onclick=\"openDet('" + r.id + "')\">"
+
+      // 상단 행
+      + "<div class='card-top'>"
+        + "<div>"
+          + "<div class='card-badges'>" + flags + brandBadge + typeBadge + delivTag + "</div>"
+          + "<div class='card-name'>"   + esc(r.name) + "</div>"
+          + "<div class='card-meta'>"   + metaParts.join(" · ") + "</div>"
+          + (r.createdBy ? "<div class='card-creator'>✍ " + esc(r.createdBy) + "</div>" : "")
+        + "</div>"
+        + procBtn
+      + "</div>"
+
+      // 문의사항
+      + (r.content  ? "<div class='card-content'>"  + esc(r.content)  + "</div>" : "")
+      // 처리내용
+      + (r.resolve  ? "<div class='card-resolve'>✅ " + esc(r.resolve) + "</div>" : "")
+      // 사진
+      + (imgs.length ? "<div class='card-photos'>"  + photosHtml       + "</div>" : "")
+
+    + "</div>";
+  }
+  cl.innerHTML = html;
+}
+
+
+// 날짜 정렬 토글
+function toggleSort(){
+  if(sortField==="inquiryDate"){ sortDir*=-1; }
+  else { sortField="inquiryDate"; sortDir=1; }
+  render();
+}
+
+// 월별 통계 패널
+function toggleStats(){
+  const panel=G("stats-panel"), btn=G("stats-btn");
+  const isOpen=panel.classList.toggle("open");
+  if(btn) btn.classList.toggle("active",isOpen);
+  if(isOpen) renderStats();
+}
+
+function renderStats(){
+  if(!G("stats-grid")) return;
+  // 월별 집계
+  const monthly={};
+  records.forEach(r=>{
+    const m=r.inquiryDate?(r.inquiryDate.slice(0,7)):"미입력";
+    if(!monthly[m]) monthly[m]={total:0,done:0,pending:0,urgent:0,emotion:0};
+    monthly[m].total++;
+    if(r.processed) monthly[m].done++;
+    else monthly[m].pending++;
+    if(r.urgent&&!r.processed) monthly[m].urgent++;
+    if(r.emotion&&!r.processed) monthly[m].emotion++;
+  });
+  const months=Object.keys(monthly).filter(m=>m!=="미입력").sort().reverse();
+  if(monthly["미입력"]) months.push("미입력");
+  const maxTotal=Math.max(...months.map(m=>monthly[m].total),1);
+
+  // KPI 요약
+  const totalAll=records.length;
+  const totalDone=records.filter(r=>r.processed).length;
+  const totalPend=records.filter(r=>!r.processed).length;
+  G("stat-summary").innerHTML=`
+    <div class="stat-kpi"><div class="stat-kpi-num">${totalAll}</div><div class="stat-kpi-lbl">전체 문의</div></div>
+    <div class="stat-kpi"><div class="stat-kpi-num" style="color:var(--green)">${totalDone}</div><div class="stat-kpi-lbl">처리완료</div></div>
+    <div class="stat-kpi"><div class="stat-kpi-num" style="color:var(--accent)">${totalPend}</div><div class="stat-kpi-lbl">미처리</div></div>
+    <div class="stat-kpi"><div class="stat-kpi-num" style="color:var(--urgent)">${records.filter(r=>r.urgent&&!r.processed).length}</div><div class="stat-kpi-lbl">🔴 긴급</div></div>
+  `;
+
+  // 월별 바 차트
+  G("stats-grid").innerHTML=months.map(m=>{
+    const d=monthly[m];
+    const fillPct=Math.round(d.total/maxTotal*100);
+    const donePct=Math.round(d.done/d.total*100);
+    const label=m==="미입력"?m:(()=>{const[y,mo]=m.split("-");return `${y}년 ${parseInt(mo)}월`;})();
+    return `<div class="stat-bar-row">
+      <div class="stat-bar-label">
+        <strong>${label}</strong>
+        <span>총 ${d.total}건 · 완료 ${d.done} · 미처리 ${d.pending}${d.urgent?" · 🔴"+d.urgent:""}${d.emotion?" · 💢"+d.emotion:""}</span>
+      </div>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill ${d.pending>0?"pend":"done"}" style="width:${fillPct}%"></div>
+      </div>
+    </div>`;
+  }).join("") || '<p style="color:var(--ink-3);font-size:.88rem">데이터가 없습니다.</p>';
+}
+
+// 등록 폼 접기/펼치기
+var _formOpen = true;
+function toggleRegForm(){
+  _formOpen = !_formOpen;
+  var wrap = G("form-body-wrap");
+  var icon = G("form-toggle-icon");
+  if(wrap){
+    wrap.style.maxHeight = _formOpen ? "2000px" : "0";
+    wrap.style.opacity   = _formOpen ? "1" : "0";
+  }
+  if(icon) icon.style.transform = _formOpen ? "rotate(0deg)" : "rotate(180deg)";
+}
+
+// 최초배송팀 필드 show/hide
+function syncDelivery(ns){
+  const typeEl=G(ns+"-type"), wrapEl=G(ns+"-delivery-wrap");
+  if(!typeEl||!wrapEl) return;
+  const needsDelivery=["AS문의","컴플레인"].includes(typeEl.value);
+  wrapEl.classList.toggle("show", needsDelivery);
+  if(!needsDelivery) G(ns+"-delivery").value="";
+}
+
+let _tt;
+function toast(msg,t=""){ const el=G("toast"); el.textContent=(t==="e"?"✕ ":"✓ ")+msg; el.className="show"+(t==="e"?" err":""); clearTimeout(_tt); _tt=setTimeout(()=>el.className="",3500); }
+
+["ov-det","ov-del","ov-edit","ov-proc","ov-unproc","ov-admin","ov-myinfo"].forEach(id=>{
+  G(id).addEventListener("click",e=>{ if(e.target!==G(id)) return;
+    if(id==="ov-det") closeDet(); else if(id==="ov-del") closeDel(); else if(["ov-proc","ov-unproc"].includes(id)) closeProc(); else if(id==="ov-admin") closeAdmin(); else if(id==="ov-myinfo") closeMyInfo(); else closeEdit();
+  });
+});
+</script>
+</body>
+</html>
