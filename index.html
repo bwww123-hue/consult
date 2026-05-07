@@ -259,6 +259,25 @@ tbody tr:hover .acts{opacity:1}
 .admin-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
 .admin-section-title{font-size:.75rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:14px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px}
 
+
+/* 브랜드 탭 */
+.brand-bar{display:flex;gap:6px;padding-bottom:2px;overflow-x:auto;scrollbar-width:none}
+.brand-bar::-webkit-scrollbar{display:none}
+.brand-tab{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 18px;
+  border-radius:10px;border:1.5px solid var(--border);background:var(--surface);
+  font-family:inherit;font-size:.85rem;font-weight:600;color:var(--ink-3);
+  cursor:pointer;white-space:nowrap;transition:all .15s;box-shadow:var(--sh)
+}
+.brand-tab:hover{border-color:var(--ink-3);color:var(--ink)}
+.brand-tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.brand-tab:nth-child(2).on{background:var(--rebrix);border-color:var(--rebrix)}
+.brand-tab:nth-child(3).on{background:var(--penda);border-color:var(--penda)}
+.btbadge{font-size:.72rem;padding:2px 7px;border-radius:12px;background:rgba(255,255,255,.22);font-weight:600}
+.brand-tab:not(.on) .btbadge{background:var(--bg);color:var(--ink-3)}
+@media(max-width:768px){
+  .brand-tab{padding:8px 14px;font-size:.82rem}
+}
 /* ═══ 모바일 전용 CSS ═══ */
 @media(max-width:768px){
   /* 헤더 */
@@ -469,6 +488,13 @@ tbody tr:hover .acts{opacity:1}
     <div class="stat-summary" id="stat-summary"></div>
     <div class="stats-grid" id="stats-grid"></div>
   </div>
+</div>
+
+<!-- 브랜드 탭 -->
+<div class="brand-bar" id="brand-bar">
+  <button class="brand-tab on" id="btab-all"     onclick="setBrand('all')">전체 브랜드<span class="btbadge" id="bb-all">0</span></button>
+  <button class="brand-tab"    id="btab-rebrix"  onclick="setBrand('레브릭스')">레브릭스<span class="btbadge" id="bb-rebrix" style="background:var(--rebrix-l);color:var(--rebrix)">0</span></button>
+  <button class="brand-tab"    id="btab-penda"   onclick="setBrand('펜다소파')">펜다소파<span class="btbadge" id="bb-penda"  style="background:var(--penda-l);color:var(--penda)">0</span></button>
 </div>
 
 <!-- 필터 탭 -->
@@ -1084,6 +1110,7 @@ function syncRecords() {
 ═══════════════════════════════════════════════════ */
 let records=[], filter="pending";
 let sortField="createdAt", sortDir=-1; // -1:내림차순 1:오름차순
+let brandFilter="all"; // "all"|"레브릭스"|"펜다소파"
 let fProc=false, eProc=false;
 let delId=null, editId=null, procId=null;
 let eExist=[], fFiles=[], eFiles=[];
@@ -1402,20 +1429,34 @@ function _render(){
   n.style.display=pend.length?"inline":"none";
   n.textContent=pend.length?`⚑ 미처리 ${pend.length}건`:"";
 
+  // 브랜드 필터 적용 (TAB_DEFS 참조 전에 먼저 정의)
+  var bFiltered = brandFilter==="all" ? records : records.filter(function(r){ return r.brand===brandFilter; });
+  var bPend = bFiltered.filter(function(r){ return !r.processed; });
+  var bUrg  = bFiltered.filter(function(r){ return r.urgent && !r.processed; });
+  var bEmo  = bFiltered.filter(function(r){ return r.emotion && !r.processed; });
+  var bRes  = bFiltered.filter(function(r){ return r.processed===true; });
+
+  // 브랜드 탭 뱃지
+  var bbAll    = G("bb-all");    if(bbAll)    bbAll.textContent    = records.length;
+  var bbRebrix = G("bb-rebrix"); if(bbRebrix) bbRebrix.textContent = records.filter(function(r){return r.brand==="레브릭스";}).length;
+  var bbPenda  = G("bb-penda");  if(bbPenda)  bbPenda.textContent  = records.filter(function(r){return r.brand==="펜다소파";}).length;
+
+  const map={all:bFiltered,pending:bPend,urgent:bUrg,emotion:bEmo,resolved:bRes};
+
   // 탭을 매번 새로 그려 배지 상태 불일치 방지
   const TAB_DEFS=[
-    {k:"all",     label:"전체",       cnt:records.length, style:""},
-    {k:"pending", label:"미처리",     cnt:pend.length,    style:"background:#ffe0d9;color:var(--accent)"},
-    {k:"urgent",  label:"🔴 긴급",    cnt:urg.length,     style:"background:#ffe0d9;color:var(--accent)"},
-    {k:"emotion", label:"💢 감성AS",  cnt:emo.length,     style:"background:#fef3c7;color:#b45309"},
-    {k:"resolved",label:"✅ 처리내역",cnt:res.length,     style:"background:var(--green-l);color:var(--green)"},
+    {k:"all",     label:"전체",       cnt:bFiltered.length, style:""},
+    {k:"pending", label:"미처리",     cnt:bPend.length,     style:"background:#ffe0d9;color:var(--accent)"},
+    {k:"urgent",  label:"🔴 긴급",    cnt:bUrg.length,      style:"background:#ffe0d9;color:var(--accent)"},
+    {k:"emotion", label:"💢 감성AS",  cnt:bEmo.length,      style:"background:#fef3c7;color:#b45309"},
+    {k:"resolved",label:"✅ 처리내역",cnt:bRes.length,      style:"background:var(--green-l);color:var(--green)"},
   ];
   const tabsEl = G("tabs-container");
   if(tabsEl) tabsEl.innerHTML=TAB_DEFS.map(t=>
     `<button class="tab${t.k===filter?" on":""}" onclick="setF('${t.k}')">${t.label}<span class="tbadge" style="${t.style}">${t.cnt}</span></button>`
   ).join("");
 
-  const map={all:records,pending:pend,urgent:urg,emotion:emo,resolved:res};
+  // (브랜드 필터: 아래 TAB_DEFS 전에 이미 정의됨)
   // 정렬 적용
   const raw=map[filter]||records;
   const list=[...raw].sort((a,b)=>{
@@ -1566,6 +1607,19 @@ function renderCards(list){
   cl.innerHTML = html;
 }
 
+
+// 브랜드 필터
+function setBrand(b){
+  brandFilter = b;
+  ["all","rebrix","penda"].forEach(function(k){
+    var el = G("btab-"+k);
+    if(el) el.classList.remove("on");
+  });
+  var active = b==="all"?"all": b==="레브릭스"?"rebrix":"penda";
+  var el = G("btab-"+active);
+  if(el) el.classList.add("on");
+  render();
+}
 
 // 날짜 정렬 토글
 function toggleSort(){
